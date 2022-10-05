@@ -11,9 +11,13 @@ const initialValues = {
   query: '',
 };
 export const Searchbar = ({ onSubmit }) => {
-  const handleSubmit = value => {
-    console.log(value);
+  const handleSubmit = (value, { resetForm }) => {
+    if (value.query.trim() === '') {
+      alert('Введите больше букв');
+      return;
+    }
     onSubmit(value);
+    resetForm();
   };
 
   return (
