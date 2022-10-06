@@ -1,14 +1,17 @@
-import { Gallery } from './ImageGallery.styled';
+import { Gallery, ModalImage } from './ImageGallery.styled';
 import { Component } from 'react';
 import { getPhoto } from 'services/Api';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Loader } from '../Loader/Loader';
 import { Box } from '../common/Box';
+import { Modal } from 'components/Modal/Modal';
 
 export class ImageGallery extends Component {
   state = {
     gallery: [],
+    modalImg: '',
     isLoad: false,
+    isModal: false,
   };
 
   componentDidUpdate(prevProps) {
@@ -23,7 +26,7 @@ export class ImageGallery extends Component {
         })
         .finally(this.setState({ isLoad: false }));
     }
-    if (prevPage !== nextPage || prevQuery !== nextQuery) {
+    if (prevQuery !== nextQuery || prevPage !== nextPage) {
       this.setState({ isLoad: true });
       getPhoto(nextQuery, nextPage)
         .then(data => {
@@ -34,20 +37,38 @@ export class ImageGallery extends Component {
         .finally(this.setState({ isLoad: false }));
     }
   }
+  handelClick = img => {
+    this.setState(({ isModal }) => ({ isModal: !isModal }));
+    this.setState(prevState => ({
+      modalImg: img,
+    }));
+  };
 
   render() {
-    const { gallery, isLoad } = this.state;
+    const { gallery, isLoad, isModal } = this.state;
     return (
-      <Gallery>
-        {gallery.map(({ id, webformatURL, largeImageURL }, index) => (
-          <ImageGalleryItem key={index} url={webformatURL} />
-        ))}
+      <>
+        <Gallery>
+          {gallery.map(({ id, webformatURL, largeImageURL }, index) => (
+            <ImageGalleryItem
+              key={index}
+              url={webformatURL}
+              onClick={this.handelClick}
+              modalImg={largeImageURL}
+            />
+          ))}
+        </Gallery>
         {isLoad && (
           <Box display="flex" justifyContent="center">
             <Loader />
           </Box>
         )}
-      </Gallery>
+        {isModal && (
+          <Modal onClose={this.handelClick}>
+            <ModalImage src={this.state.modalImg} alt="" />
+          </Modal>
+        )}
+      </>
     );
   }
 }
