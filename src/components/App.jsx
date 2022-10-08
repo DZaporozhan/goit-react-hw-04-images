@@ -8,12 +8,12 @@ export class App extends Component {
   state = {
     query: '',
     page: 1,
-    isLoad: true,
+    loadMore: false,
   };
 
   getQuery = newQuery => {
     this.setState(prevState => ({
-      query: newQuery.query,
+      query: newQuery,
       page: 1,
     }));
   };
@@ -23,17 +23,31 @@ export class App extends Component {
     }));
   };
 
+  onLoadMore = () => {
+    this.setState({ loadMore: true });
+  };
+  offLoadMore = () => {
+    this.setState({ loadMore: false });
+  };
+
   render() {
-    const { query, page } = this.state;
+    const { query, page, loadMore } = this.state;
 
     return (
       <Box>
         <Searchbar onSubmit={this.getQuery} />
 
-        <ImageGallery query={query} page={page} />
-        <Box display="flex" justifyContent="center">
-          <LoadMore onClick={this.loadMore}>Load More</LoadMore>
-        </Box>
+        <ImageGallery
+          query={query}
+          page={page}
+          onLoad={this.onLoadMore}
+          offLoad={this.offLoadMore}
+        />
+        {loadMore && (
+          <Box display="flex" justifyContent="center">
+            <LoadMore onClick={this.loadMore}>Load More</LoadMore>
+          </Box>
+        )}
       </Box>
     );
   }

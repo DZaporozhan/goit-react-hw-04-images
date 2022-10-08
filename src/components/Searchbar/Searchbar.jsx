@@ -16,7 +16,7 @@ export const Searchbar = ({ onSubmit }) => {
       alert('Введите больше букв');
       return;
     }
-    onSubmit(value);
+    onSubmit(value.query);
     resetForm();
   };
 

@@ -10,7 +10,7 @@ export class ImageGallery extends Component {
   state = {
     gallery: [],
     modalImg: '',
-    isLoad: false,
+    isLoader: false,
     isModal: false,
   };
 
@@ -19,22 +19,38 @@ export class ImageGallery extends Component {
     const { query: prevQuery, page: prevPage } = prevProps;
 
     if (prevQuery !== nextQuery) {
-      this.setState({ isLoad: true });
+      this.setState({ isLoader: true });
       getPhoto(nextQuery, nextPage)
         .then(({ hits }) => {
           this.setState({ gallery: hits });
+          return hits;
         })
-        .finally(this.setState({ isLoad: false }));
+        .then(collection => {
+          if (collection.length) {
+            this.props.onLoad();
+          } else {
+            this.resetGallery();
+            this.props.offLoad();
+          }
+        })
+        .finally(this.setState({ isLoader: false }));
     }
-    if (prevQuery !== nextQuery || prevPage !== nextPage) {
-      this.setState({ isLoad: true });
+
+    if (prevQuery === nextQuery && prevPage !== nextPage) {
+      this.setState({ isLoader: true });
       getPhoto(nextQuery, nextPage)
-        .then(data => {
+        .then(({ hits }) => {
           this.setState(prevState => ({
-            gallery: [...prevState.gallery, ...data.hits],
+            gallery: [...prevState.gallery, ...hits],
           }));
+          return hits;
         })
-        .finally(this.setState({ isLoad: false }));
+        .then(collection => {
+          if (collection.length) {
+            this.props.onLoad();
+          }
+        })
+        .finally(this.setState({ isLoader: false }));
     }
   }
   handelClick = img => {
@@ -43,9 +59,11 @@ export class ImageGallery extends Component {
       modalImg: img,
     }));
   };
-
+  resetGallery = () => {
+    this.setState({ gallery: [] });
+  };
   render() {
-    const { gallery, isLoad, isModal } = this.state;
+    const { gallery, isLoader, isModal } = this.state;
     return (
       <>
         <Gallery>
@@ -58,7 +76,7 @@ export class ImageGallery extends Component {
             />
           ))}
         </Gallery>
-        {isLoad && (
+        {isLoader && (
           <Box display="flex" justifyContent="center">
             <Loader />
           </Box>
