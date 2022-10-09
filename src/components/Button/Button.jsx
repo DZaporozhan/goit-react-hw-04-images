@@ -1,5 +1,5 @@
-const { Button } = require('./Button.styled');
+import { Button } from './Button.styled';
 
 export const LoadMore = ({ children, onClick }) => {
-  return <Button onClick={() => onClick()}>{children}</Button>;
+  return <Button onClick={e => onClick(e)}>{children}</Button>;
 };

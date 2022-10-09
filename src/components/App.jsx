@@ -3,6 +3,7 @@ import { LoadMore } from './Button/Button';
 import { Box } from './common/Box';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
+import { ToastContainer } from 'react-toastify';
 
 export class App extends Component {
   state = {
@@ -17,6 +18,7 @@ export class App extends Component {
       page: 1,
     }));
   };
+
   loadMore = () => {
     this.setState(prevState => ({
       page: prevState.page + 1,
@@ -35,6 +37,19 @@ export class App extends Component {
 
     return (
       <Box>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+
+        <ToastContainer />
         <Searchbar onSubmit={this.getQuery} />
 
         <ImageGallery

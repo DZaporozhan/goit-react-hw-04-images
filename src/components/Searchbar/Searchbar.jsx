@@ -6,6 +6,8 @@ import {
 } from './Searchbar.styled';
 import { BiSearchAlt } from 'react-icons/bi';
 import { Formik } from 'formik';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const initialValues = {
   query: '',
@@ -13,7 +15,7 @@ const initialValues = {
 export const Searchbar = ({ onSubmit }) => {
   const handleSubmit = (value, { resetForm }) => {
     if (value.query.trim() === '') {
-      alert('Введите больше букв');
+      toast.error('Введите больше букв');
       return;
     }
     onSubmit(value.query);

@@ -5,6 +5,8 @@ import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Loader } from '../Loader/Loader';
 import { Box } from '../common/Box';
 import { Modal } from 'components/Modal/Modal';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export class ImageGallery extends Component {
   state = {
@@ -12,45 +14,52 @@ export class ImageGallery extends Component {
     modalImg: '',
     isLoader: false,
     isModal: false,
+    error: null,
   };
 
-  componentDidUpdate(prevProps) {
+  async componentDidUpdate(prevProps) {
     const { query: nextQuery, page: nextPage } = this.props;
     const { query: prevQuery, page: prevPage } = prevProps;
 
     if (prevQuery !== nextQuery) {
       this.setState({ isLoader: true });
-      getPhoto(nextQuery, nextPage)
-        .then(({ hits }) => {
-          this.setState({ gallery: hits });
-          return hits;
-        })
-        .then(collection => {
-          if (collection.length) {
-            this.props.onLoad();
-          } else {
-            this.resetGallery();
-            this.props.offLoad();
-          }
-        })
-        .finally(this.setState({ isLoader: false }));
+      try {
+        const response = await getPhoto(nextQuery, nextPage);
+        this.setState({ gallery: response.hits });
+
+        if (response.hits.length) {
+          this.props.onLoad();
+        } else {
+          this.resetGallery();
+          this.props.offLoad();
+          toast.error(`По запросу "${nextQuery}" ничего не найдено`);
+        }
+      } catch (error) {
+        this.setState({ error });
+      } finally {
+        this.setState({ isLoader: false });
+      }
     }
 
     if (prevQuery === nextQuery && prevPage !== nextPage) {
       this.setState({ isLoader: true });
-      getPhoto(nextQuery, nextPage)
-        .then(({ hits }) => {
-          this.setState(prevState => ({
-            gallery: [...prevState.gallery, ...hits],
-          }));
-          return hits;
-        })
-        .then(collection => {
-          if (collection.length) {
-            this.props.onLoad();
-          }
-        })
-        .finally(this.setState({ isLoader: false }));
+      try {
+        const response = await getPhoto(nextQuery, nextPage);
+        this.setState(prevState => ({
+          gallery: [...prevState.gallery, ...response.hits],
+        }));
+        if (!response.hits.length || response.hits.length < 12) {
+          this.props.offLoad();
+          toast('Коллекция закончилась');
+        } else {
+          this.props.onLoad();
+        }
+      } catch (error) {
+        this.setState({ error });
+        toast.error(`${this.state.error}`);
+      } finally {
+        this.setState({ isLoader: false });
+      }
     }
   }
   handelClick = img => {
@@ -66,7 +75,7 @@ export class ImageGallery extends Component {
     const { gallery, isLoader, isModal } = this.state;
     return (
       <>
-        <Gallery>
+        <Gallery id="gallery">
           {gallery.map(({ id, webformatURL, largeImageURL }, index) => (
             <ImageGalleryItem
               key={index}
