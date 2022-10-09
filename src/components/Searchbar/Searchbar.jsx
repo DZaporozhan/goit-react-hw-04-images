@@ -7,6 +7,7 @@ import {
 import { BiSearchAlt } from 'react-icons/bi';
 import { Formik } from 'formik';
 import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 import 'react-toastify/dist/ReactToastify.css';
 
 const initialValues = {
@@ -35,4 +36,8 @@ export const Searchbar = ({ onSubmit }) => {
       </Formik>
     </Header>
   );
+};
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func,
 };

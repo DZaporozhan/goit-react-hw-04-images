@@ -17,7 +17,6 @@ export class Modal extends Component {
     }
   };
   handelClick = e => {
-    console.log(e);
     if (e.currentTarget === e.target) {
       this.props.onClose();
     }

@@ -6,6 +6,7 @@ import { Loader } from '../Loader/Loader';
 import { Box } from '../common/Box';
 import { Modal } from 'components/Modal/Modal';
 import { toast } from 'react-toastify';
+import PropTypes from 'prop-types';
 import 'react-toastify/dist/ReactToastify.css';
 
 export class ImageGallery extends Component {
@@ -99,3 +100,10 @@ export class ImageGallery extends Component {
     );
   }
 }
+
+ImageGallery.protoTypes = {
+  query: PropTypes.string.isRequired,
+  page: PropTypes.number.isRequired,
+  onLoad: PropTypes.func,
+  offLoad: PropTypes.func,
+};
