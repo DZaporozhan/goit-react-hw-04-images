@@ -1,5 +1,5 @@
 import { Gallery, ModalImage } from './ImageGallery.styled';
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { getPhoto } from 'services/Api';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { Loader } from '../Loader/Loader';
@@ -9,97 +9,76 @@ import { toast } from 'react-toastify';
 import PropTypes from 'prop-types';
 import 'react-toastify/dist/ReactToastify.css';
 
-export class ImageGallery extends Component {
-  state = {
-    gallery: [],
-    modalImg: '',
-    isLoader: false,
-    isModal: false,
-    error: null,
+export const ImageGallery = ({ query, page, onLoad, offLoad }) => {
+  const [gallery, setGallery] = useState([]);
+  const [modalImg, setModalImg] = useState('');
+  const [isLoader, setIsLoader] = useState(false);
+  const [isModal, setIsModal] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handelClick = img => {
+    setIsModal(state => !state);
+    setModalImg(state => (state = img));
   };
 
-  async componentDidUpdate(prevProps) {
-    const { query: nextQuery, page: nextPage } = this.props;
-    const { query: prevQuery, page: prevPage } = prevProps;
+  const resetGallery = () => {
+    setGallery([]);
+  };
 
-    if (prevQuery !== nextQuery) {
-      this.setState({ isLoader: true });
-      try {
-        const response = await getPhoto(nextQuery, nextPage);
-        this.setState({ gallery: response.hits });
-
-        if (response.hits.length) {
-          this.props.onLoad();
-        } else {
-          this.resetGallery();
-          this.props.offLoad();
-          toast.error(`По запросу "${nextQuery}" ничего не найдено`);
-        }
-      } catch (error) {
-        this.setState({ error });
-      } finally {
-        this.setState({ isLoader: false });
-      }
+  useEffect(() => {
+    if (!query) {
+      return;
     }
-
-    if (prevQuery === nextQuery && prevPage !== nextPage) {
-      this.setState({ isLoader: true });
-      try {
-        const response = await getPhoto(nextQuery, nextPage);
-        this.setState(prevState => ({
-          gallery: [...prevState.gallery, ...response.hits],
-        }));
-        if (!response.hits.length || response.hits.length < 12) {
-          this.props.offLoad();
+    setIsLoader(true);
+    getPhoto(query, page)
+      .then(data => {
+        setGallery(collect => [...collect, ...data.hits]);
+        if (data.hits.length) {
+          onLoad();
+        } else {
+          resetGallery();
+          offLoad();
+          toast.error(`По запросу "${query}" ничего не найдено`);
+        }
+        return data;
+      })
+      .then(data => {
+        if (!data.hits.length || data.hits.length < 12) {
+          offLoad();
           toast('Коллекция закончилась');
         } else {
-          this.props.onLoad();
+          onLoad();
         }
-      } catch (error) {
-        this.setState({ error });
-        toast.error(`${this.state.error}`);
-      } finally {
-        this.setState({ isLoader: false });
-      }
-    }
-  }
-  handelClick = img => {
-    this.setState(({ isModal }) => ({ isModal: !isModal }));
-    this.setState(prevState => ({
-      modalImg: img,
-    }));
-  };
-  resetGallery = () => {
-    this.setState({ gallery: [] });
-  };
-  render() {
-    const { gallery, isLoader, isModal } = this.state;
-    return (
-      <>
-        <Gallery id="gallery">
-          {gallery.map(({ id, webformatURL, largeImageURL }, index) => (
-            <ImageGalleryItem
-              key={index}
-              url={webformatURL}
-              onClick={this.handelClick}
-              modalImg={largeImageURL}
-            />
-          ))}
-        </Gallery>
-        {isLoader && (
-          <Box display="flex" justifyContent="center">
-            <Loader />
-          </Box>
-        )}
-        {isModal && (
-          <Modal onClose={this.handelClick}>
-            <ModalImage src={this.state.modalImg} alt="" />
-          </Modal>
-        )}
-      </>
-    );
-  }
-}
+      })
+      .catch(error => setError(error.massage))
+      .finally(() => setIsLoader(false));
+  }, [query, page]);
+
+  return (
+    <>
+      <Gallery id="gallery">
+        {gallery.map(({ id, webformatURL, largeImageURL }, index) => (
+          <ImageGalleryItem
+            key={index}
+            url={webformatURL}
+            onClick={handelClick}
+            modalImg={largeImageURL}
+          />
+        ))}
+      </Gallery>
+      {isLoader && (
+        <Box display="flex" justifyContent="center">
+          <Loader />
+        </Box>
+      )}
+      {isModal && (
+        <Modal onClose={handelClick}>
+          <ModalImage src={modalImg} alt="" />
+        </Modal>
+      )}
+    </>
+  );
+};
 
 ImageGallery.protoTypes = {
   query: PropTypes.string.isRequired,

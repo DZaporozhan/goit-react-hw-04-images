@@ -1,69 +1,59 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { LoadMore } from './Button/Button';
 import { Box } from './common/Box';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ToastContainer } from 'react-toastify';
 
-export class App extends Component {
-  state = {
-    query: '',
-    page: 1,
-    loadMore: false,
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [isLoadMore, setIsLoadMore] = useState(false);
+
+  const getQuery = newQuery => {
+    setQuery(state => newQuery);
+    setPage(1);
   };
 
-  getQuery = newQuery => {
-    this.setState(prevState => ({
-      query: newQuery,
-      page: 1,
-    }));
+  const loadMore = () => {
+    setPage(state => state + 1);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const onLoadMore = () => {
+    setIsLoadMore(true);
+  };
+  const offLoadMore = () => {
+    setIsLoadMore(false);
   };
 
-  onLoadMore = () => {
-    this.setState({ loadMore: true });
-  };
-  offLoadMore = () => {
-    this.setState({ loadMore: false });
-  };
+  return (
+    <Box>
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
-  render() {
-    const { query, page, loadMore } = this.state;
+      <ToastContainer />
+      <Searchbar onSubmit={getQuery} />
 
-    return (
-      <Box>
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
-
-        <ToastContainer />
-        <Searchbar onSubmit={this.getQuery} />
-
-        <ImageGallery
-          query={query}
-          page={page}
-          onLoad={this.onLoadMore}
-          offLoad={this.offLoadMore}
-        />
-        {loadMore && (
-          <Box display="flex" justifyContent="center">
-            <LoadMore onClick={this.loadMore}>Load More</LoadMore>
-          </Box>
-        )}
-      </Box>
-    );
-  }
-}
+      <ImageGallery
+        query={query}
+        page={page}
+        onLoad={onLoadMore}
+        offLoad={offLoadMore}
+      />
+      {isLoadMore && (
+        <Box display="flex" justifyContent="center">
+          <LoadMore onClick={loadMore}>Load More</LoadMore>
+        </Box>
+      )}
+    </Box>
+  );
+};
