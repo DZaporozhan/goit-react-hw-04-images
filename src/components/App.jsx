@@ -17,30 +17,29 @@ export const App = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!query) {
-      return;
+    if (query) {
+      setIsLoader(true);
+      getPhoto(query, page)
+        .then(data => {
+          setGallery(collect => [...collect, ...data.hits]);
+          if (data.hits.length) {
+            onLoadMore();
+          } else {
+            resetGallery();
+            offLoadMore();
+            toast.error(`По запросу "${query}" ничего не найдено`);
+          }
+          return data;
+        })
+        .then(data => {
+          if (data.hits.length && data.hits.length < 12) {
+            offLoadMore();
+            toast('Коллекция закончилась');
+          }
+        })
+        .catch(error => setError(error.massage))
+        .finally(() => setIsLoader(false));
     }
-    setIsLoader(true);
-    getPhoto(query, page)
-      .then(data => {
-        setGallery(collect => [...collect, ...data.hits]);
-        if (data.hits.length) {
-          onLoadMore();
-        } else {
-          resetGallery();
-          offLoadMore();
-          toast.error(`По запросу "${query}" ничего не найдено`);
-        }
-        return data;
-      })
-      .then(data => {
-        if (data.hits.length && data.hits.length < 12) {
-          offLoadMore();
-          toast('Коллекция закончилась');
-        }
-      })
-      .catch(error => setError(error.massage))
-      .finally(() => setIsLoader(false));
   }, [query, page]);
 
   const resetGallery = () => {
